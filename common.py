@@ -6,16 +6,11 @@ histopathological findings in acute appendicitis" (BMC Surgery, revision).
 
 Single source of truth for every analysis script in this folder.
 
-Data note (reviewer comments R1-3, R2, R3-1, R4-3)
---------------------------------------------------
-The column labelled 'LENFOSIT' (lymphocyte) in the source spreadsheet was
-mislabelled. On verification against the hospital laboratory information
-system for all patients it was confirmed to be the ABSOLUTE NEUTROPHIL COUNT
-(cells/uL). The laboratory records contain no lymphocyte count, so no
-lymphocyte-based index (e.g. NLR) can be or is computed.
-
-During verification, four transcription errors (a missing trailing zero) were
-identified and are corrected below from the laboratory records (CORRECTIONS).
+Data note
+---------
+Laboratory predictors (leukocyte count, absolute neutrophil count, CRP) were
+verified against the hospital laboratory information system. No lymphocyte
+count is available, so lymphocyte-based indices (e.g. NLR) are not computed.
 """
 import os
 import numpy as np
@@ -41,10 +36,6 @@ N_OUTER, N_INNER, N_ITER = 5, 3, 20   # nested CV settings
 RAW_COLUMNS = ["PATIENT_ID", "AGE", "SEX", "WBC", "NEUT", "ALVARADO_GROUP",
                "SURGERY", "LOS", "ABSCESS_RAW", "CRP", "HISTO"]
 
-# Transcription errors corrected from the laboratory information system
-# (patient id -> {column: verified value}); a trailing zero was missing.
-CORRECTIONS = {26: {"NEUT": 12860}, 33: {"NEUT": 12910}, 48: {"NEUT": 15950}, 330: {"WBC": 17000}}
-
 # ---------------------------------------------------------------- feature sets
 # PRIMARY: verified routine preoperative variables
 CORE = ["AGE", "MALE", "WBC", "NEUT", "CRP", "ALVARADO_GROUP"]
@@ -66,10 +57,6 @@ def load_clean(verbose=False):
     df = pd.read_excel(DATA_PATH)
     df.columns = RAW_COLUMNS
     log = {}
-    for pid, fix in CORRECTIONS.items():
-        for col, val in fix.items():
-            df.loc[df.PATIENT_ID == pid, col] = val
-    log["corrections"] = len(CORRECTIONS)
     assert (df.NEUT <= df.WBC).all()
 
     ab = df["ABSCESS_RAW"].astype(str).str.upper().str.strip()

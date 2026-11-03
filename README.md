@@ -7,7 +7,7 @@ Analysis code accompanying the revised manuscript
 Patient-level data cannot be shared publicly (confidentiality). Place the de-identified spreadsheet
 (`veriseti.xlsx`, 420 rows, 11 columns) two folders above this directory or point to it with the
 environment variable `APPENDICITIS_DATA`. Column order: patient ID, age, sex (E/K), leukocyte count,
-absolute neutrophil count (originally mislabelled "lymphocyte"; verified against the laboratory records),
+absolute neutrophil count,
 Alvarado risk group (1 = score 5-6, 2 = 7-8, 3 = 9-10), surgical approach, length of stay,
 intraoperative abscess (APSE/YOK), CRP, histopathological grade (1-4).
 
@@ -31,7 +31,7 @@ python run_all.py r03_aggregate   # single step
 | `r07_additional_file.py` | builds Additional file 1 (.docx) |
 
 ## Key design choices
-* **Predictors** = age, sex, leukocyte count, neutrophil count, CRP, Alvarado risk group (sensitivity analyses: without the Alvarado group; without the neutrophil count). Four transcription errors found during source verification are corrected in `common.py` (`CORRECTIONS`). No lymphocyte count is available, so NLR and other lymphocyte-based indices are not computed.
+* **Predictors** = age, sex, leukocyte count, neutrophil count, CRP, Alvarado risk group (sensitivity analyses: without the Alvarado group; without the neutrophil count). No lymphocyte count is available, so NLR and other lymphocyte-based indices are not computed.
 * **Repeated predictions**: each patient receives one out-of-fold prediction per repetition; the five are averaged so every patient contributes one prediction to DeLong tests, bootstrap CIs, calibration and DCA.
 * **Multiplicity**: Family A (main RF model vs Alvarado for two outcomes, Holm m=2); Family B (ten exploratory models vs Alvarado per outcome, Holm m=10).
 * **No leakage**: scaling, class weighting, hyper-parameters, classification thresholds and isotonic recalibration are learned on outer-training folds only.
