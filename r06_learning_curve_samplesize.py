@@ -56,7 +56,7 @@ for outcome in ["COMPLICATED", "ABSCESS"]:
     prev = df[outcome].mean()
     ev = int(df[outcome].sum())
     # parameters: Alvarado group treated as 1 ordinal parameter
-    for lab, k in [("core (5 parameters)", len(CORE))]:
+    for lab, k in [(f"core ({len(CORE)} parameters)", len(CORE))]:
         ss[f"{outcome}|{lab}"] = dict(events=ev, EPV=ev / k, **riley(prev, k))
 out["sample_size"] = ss
 json.dump(out, open(os.path.join(TAB_DIR, "learning_curve_samplesize.json"), "w"), indent=2)

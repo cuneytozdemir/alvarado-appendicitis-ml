@@ -26,7 +26,7 @@ def med_iqr(x):
 # ------------------------------------------------------------ Table 2
 rows = []
 s, c = df[df.COMPLICATED == 0], df[df.COMPLICATED == 1]
-for var, lab in [("AGE", "Age (years), median [IQR]"), ("WBC", "Leukocyte (/uL)"), ("CRP", "CRP (mg/L)")]:
+for var, lab in [("AGE", "Age (years), median [IQR]"), ("WBC", "Leukocyte (/uL)"), ("NEUT", "Neutrophil (/uL)"), ("CRP", "CRP (mg/L)")]:
     p = stats.mannwhitneyu(s[var], c[var]).pvalue
     f = med_iqr
     rows.append([lab, f(s[var]), f(c[var]), p])
@@ -47,7 +47,9 @@ print(t2.to_string())
 
 out["sample"] = dict(age_median=float(df.AGE.median()), age_iqr=list(np.percentile(df.AGE, [25, 75])),
                      age_range=[int(df.AGE.min()), int(df.AGE.max())], male=int(df.MALE.sum()),
-                     wbc_median=float(df.WBC.median()),
+                     wbc_median=float(df.WBC.median()), neut_median=float(df.NEUT.median()),
+                     neut_iqr=list(np.percentile(df.NEUT, [25, 75])), wbc_iqr=list(np.percentile(df.WBC, [25, 75])),
+                     neut_pct_median=float((df.NEUT / df.WBC).median() * 100),
                      crp_median=float(df.CRP.median()), crp_iqr=list(np.percentile(df.CRP, [25, 75])),
                      laparoscopic=int(df.LAPAROSCOPIC.sum()), los_median=float(df.LOS.median()),
                      los_range=[float(df.LOS.min()), float(df.LOS.max())],
@@ -83,7 +85,7 @@ out["abscess_histo"] = ct_ab.to_dict()
 
 # ------------------------------------------------------------ univariate discrimination
 uni = []
-for v in ["ALVARADO_GROUP", "WBC", "CRP", "AGE"]:
+for v in ["ALVARADO_GROUP", "WBC", "NEUT", "CRP", "AGE"]:
     r = {"Feature": LABELS[v]}
     for t in ["COMPLICATED", "ABSCESS"]:
         auc = roc_auc_score(df[t], df[v]); lo, hi = delong_ci(df[t], df[v])
@@ -117,17 +119,19 @@ ax.set_title(f"Histopathological grade by Alvarado risk group (n=420)\n"
 plt.tight_layout(); plt.savefig(os.path.join(FIG_DIR, "figure1.png"), dpi=300); plt.close()
 
 # ------------------------------------------------------------ Figure 2 (correlation)
-vars_ = ["AGE", "MALE", "WBC", "CRP", "ALVARADO_GROUP", "COMPLICATED", "ABSCESS"]
+vars_ = ["AGE", "MALE", "WBC", "NEUT", "CRP", "ALVARADO_GROUP", "COMPLICATED", "ABSCESS"]
 lab = [LABELS.get(v, v) for v in vars_[:-2]] + ["Complicated", "Abscess"]
 cm = df[vars_].corr(method="spearman")
-plt.figure(figsize=(6.4, 5.4))
+plt.figure(figsize=(7.0, 6.0))
 mask = np.triu(np.ones_like(cm, bool), 1)
 sns.heatmap(cm, mask=mask, annot=True, fmt=".2f", cmap="RdBu_r", vmin=-1, vmax=1,
             xticklabels=lab, yticklabels=lab, annot_kws={"size": 8.5}, cbar_kws={"label": "Spearman rho"})
 plt.title("Spearman correlations among predictors and outcomes (n=420)", fontsize=10)
 plt.tight_layout(); plt.savefig(os.path.join(FIG_DIR, "figure2.png"), dpi=300); plt.close()
 out["corr"] = {"wbc_alv": float(cm.loc["WBC", "ALVARADO_GROUP"]),
-               "crp_alv": float(cm.loc["CRP", "ALVARADO_GROUP"]), "wbc_crp": float(cm.loc["WBC", "CRP"])}
+               "crp_alv": float(cm.loc["CRP", "ALVARADO_GROUP"]), "wbc_crp": float(cm.loc["WBC", "CRP"]),
+               "neut_wbc": float(cm.loc["NEUT", "WBC"]), "neut_alv": float(cm.loc["NEUT", "ALVARADO_GROUP"]),
+               "neut_crp": float(cm.loc["NEUT", "CRP"])}
 
 with open(os.path.join(TAB_DIR, "r01_results.json"), "w") as f:
     json.dump(out, f, indent=2, default=float)

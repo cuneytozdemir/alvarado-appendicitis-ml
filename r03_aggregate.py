@@ -129,7 +129,7 @@ pairs = []
 for outcome in ["COMPLICATED", "ABSCESS"]:
     y = df[outcome].values
     core = P[(outcome, "core", "Random forest")].mean(1)
-    for fs in ["core_no_alvarado"]:
+    for fs in ["core_no_alvarado", "core_no_neutrophil"]:
         other = P[(outcome, fs, "Random forest")].mean(1)
         a, b, p = delong_test(y, core, other)
         pairs.append(dict(outcome=outcome, comparison=f"RF core vs RF {fs}", auc_a=a, auc_b=b, p=p))

@@ -138,7 +138,7 @@ if __name__ == "__main__":
                     jobs.append(("ml", outcome, "core", m, seed, fold, m == "Random forest"))
                 if outcome == "COMPOSITE":
                     continue
-                for fs in ["core_no_alvarado"]:
+                for fs in ["core_no_alvarado", "core_no_neutrophil"]:
                     for m in ["Random forest", "Logistic regression"]:
                         jobs.append(("ml", outcome, fs, m, seed, fold, False))
     print(f"{len(jobs)} tasks")

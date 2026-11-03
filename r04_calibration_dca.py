@@ -74,7 +74,7 @@ for j, (outcome, title) in enumerate([("COMPLICATED", "Complicated appendicitis"
     ax.set_xlabel("Threshold probability"); ax.set_ylabel("Net benefit")
     ax.set_title(f"{'CD'[j]}  Decision curve - {title}", loc="left", fontsize=10)
     ax.legend(fontsize=7.3)
-fig.suptitle("Main model (random forest; age, sex, leukocyte count, CRP, Alvarado risk group). Out-of-fold predictions "
+fig.suptitle("Main model (random forest; age, sex, leukocyte count, neutrophil count, CRP, Alvarado risk group). Out-of-fold predictions "
              "from repeated nested cross-validation;\nisotonic recalibration fitted within outer-training folds only.",
              fontsize=8.5)
 plt.tight_layout(); plt.savefig(os.path.join(FIG_DIR, "figure5.png"), dpi=300); plt.close()

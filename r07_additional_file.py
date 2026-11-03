@@ -71,8 +71,9 @@ doc.add_paragraph("The Relationship Between the Alvarado Risk Group and Final Hi
                   "Appendicitis, with Internally Validated Machine-Learning Models for Complicated Appendicitis "
                   "and Intraoperative Abscess — supplementary tables and figure.")
 
-FSN = {"core": "Primary: age, sex, leukocyte, CRP, Alvarado group",
-       "core_no_alvarado": "Without Alvarado: age, sex, leukocyte, CRP",
+FSN = {"core": "Primary: age, sex, leukocyte, neutrophil, CRP, Alvarado group",
+       "core_no_alvarado": "Without Alvarado: age, sex, leukocyte, neutrophil, CRP",
+       "core_no_neutrophil": "Without neutrophil: age, sex, leukocyte, CRP, Alvarado group",
        "alvarado": "Alvarado risk group alone"}
 OUTN = {"COMPLICATED": "Complicated appendicitis (histopathological grade 3–4)",
         "ABSCESS": "Intraoperative abscess",
@@ -81,7 +82,7 @@ OUTN = {"COMPLICATED": "Complicated appendicitis (histopathological grade 3–4)
 # ---------------- Table S1: all algorithms, primary feature set
 for k, outcome in enumerate(["COMPLICATED", "ABSCESS"]):
     caption(f"Table S{k+1}. Performance of all evaluated algorithms – {OUTN[outcome]} "
-            f"(primary feature set: age, sex, leukocyte count, CRP, Alvarado risk group).")
+            f"(primary feature set: age, sex, leukocyte count, neutrophil count, CRP, Alvarado risk group).")
     sub = T[(T.outcome == outcome) & T.feature_set.isin(["core", "alvarado"])].copy()
     sub["rank"] = sub.model.map(lambda m: 0 if m == "Random forest" else (2 if m.startswith("Alvarado") else 1))
     sub = sub.sort_values(["rank", "AUROC"], ascending=[True, False])
@@ -110,11 +111,11 @@ for k, outcome in enumerate(["COMPLICATED", "ABSCESS"]):
     doc.add_paragraph()
 
 # ---------------- Table S3: sensitivity analyses
-caption("Table S3. Sensitivity analyses: predictor set without the Alvarado group, and composite outcome (random forest and logistic regression).")
-sub = T[T.feature_set.isin(["core", "core_no_alvarado"]) &
+caption("Table S3. Sensitivity analyses: predictor sets without the Alvarado group or without the neutrophil count, and composite outcome (random forest and logistic regression).")
+sub = T[T.feature_set.isin(["core", "core_no_alvarado", "core_no_neutrophil"]) &
         T.model.isin(["Random forest", "Logistic regression"])].copy()
 sub["o"] = sub.outcome.map({"COMPLICATED": 0, "ABSCESS": 1, "COMPOSITE": 2})
-sub["f"] = sub.feature_set.map({"core": 0, "core_no_alvarado": 1})
+sub["f"] = sub.feature_set.map({"core": 0, "core_no_alvarado": 1, "core_no_neutrophil": 2})
 sub = sub.sort_values(["o", "f", "model"], ascending=[True, True, False])
 rows = []
 for _, r in sub.iterrows():
@@ -130,13 +131,14 @@ for _, r in alv.iterrows():
                  "Per-repetition mean ± SD": "—", "ΔAUROC vs Alvarado (95% CI)": "—",
                  "DeLong p vs Alvarado (unadjusted)": "—"})
 table(pd.DataFrame(rows), widths=[3.4, 6.0, 3.0, 3.4, 3.0, 4.0, 3.0], fs=7.5)
-note("The primary predictor set and the set without the Alvarado group are shown for both algorithms; the composite outcome was analysed with the primary set only.")
+note("The primary predictor set and the sets without the Alvarado group or without the neutrophil count are shown for both algorithms; the composite outcome was analysed with the primary set only.")
 pw = pd.read_csv(os.path.join(TAB_DIR, "pairwise_sensitivity.csv"))
 doc.add_paragraph()
 caption("Table S4. Direct DeLong comparisons between predictor sets (random forest).")
 pw["Outcome"] = pw.outcome.map(lambda o: OUTN[o].split(" (")[0])
 pw["Comparison"] = pw.comparison.map({
     "RF core vs RF core_no_alvarado": "Primary set vs set without Alvarado group",
+    "RF core vs RF core_no_neutrophil": "Primary set vs set without neutrophil count",
     "RF core vs LR core": "Random forest vs logistic regression (primary set)"})
 table(pd.DataFrame({"Outcome": pw.Outcome, "Comparison": pw.Comparison, "AUROC A": pw.auc_a.map(f3),
                     "AUROC B": pw.auc_b.map(f3), "DeLong p": pw.p.map(fp)}), widths=[4, 9, 2.5, 2.5, 2.5], fs=8)
