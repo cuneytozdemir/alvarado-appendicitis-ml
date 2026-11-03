@@ -1,0 +1,10 @@
+# Patient-level data are NOT shared (confidentiality)
+*.xlsx
+*.csv
+outputs/oof/
+__pycache__/
+catboost_info/
+# manuscript / peer-review material (confidential, not part of the analysis code)
+docx_tools/
+*.docx
+outputs/*_log.txt
